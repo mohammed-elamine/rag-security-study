@@ -41,6 +41,11 @@ The system is assembled from a few well-known, freely available components.
 | Glue code | Python 3.11 (psycopg 3, pgvector, ollama) | ingestion and querying |
 | Report toolchain | pandoc + xelatex, Graphviz | builds this PDF and the diagrams |
 
+The only virtualization technology used is **Docker** (application-level containerization):
+PostgreSQL with pgvector runs in a container, while Ollama runs directly on the host. No full
+virtual machine is involved — the brief permits either a VM or official Docker images, and
+containerization keeps the setup lighter and fully reproducible.
+
 I chose a small language model (`gemma2:2b`) on purpose: it answers quickly and runs comfortably
 on a laptop, which keeps the whole loop interactive. The security study in Section 7 also shows
 that a small model has interesting limitations, so this choice is not merely a convenience.
