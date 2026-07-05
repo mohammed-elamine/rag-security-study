@@ -1,0 +1,36 @@
+digraph architecture {
+  rankdir=TB;
+  fontname="Helvetica";
+  compound=true;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=9, color="#556"];
+
+  subgraph cluster_host {
+    label="Hôte — macOS / Linux / Windows";
+    fontname="Helvetica"; style="rounded,filled"; fillcolor="#f7f9fc"; color="#8899bb";
+
+    subgraph cluster_py {
+      label="Environnement Python — scripts RAG";
+      fontname="Helvetica"; style="rounded,filled"; fillcolor="#eef3fb"; color="#aabbcc";
+      ingest [label="ingest.py"];
+      query  [label="query.py"];
+      demo   [label="demo_qa.py /\nattack_demo.py"];
+    }
+
+    ollama [label="Ollama — natif (GPU) ou en Docker\ngemma2:2b + nomic-embed-text", fillcolor="#e7f7ee"];
+
+    subgraph cluster_docker {
+      label="Docker";
+      fontname="Helvetica"; style="rounded,filled"; fillcolor="#fef6e7"; color="#cc9900";
+      pg [shape=cylinder, label="pgvector\n(PostgreSQL 16)", fillcolor="#e7f7ee"];
+    }
+  }
+
+  cloud [label="APIs LLM cloud", shape=note, style="dashed,filled", fillcolor="#fdecea"];
+
+  ingest -> ollama [label="vectorisation"];
+  query  -> ollama [label="vectorisation / génération\n(HTTP :11434)"];
+  ingest -> pg     [label="Insertion"];
+  query  -> pg     [label="SQL :5432"];
+  query  -> cloud  [label="aucune sortie réseau", style=dashed, color="#c0392b", fontcolor="#c0392b"];
+}

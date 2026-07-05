@@ -1,0 +1,38 @@
+digraph workflow {
+  rankdir=TB;
+  fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=9, color="#556"];
+
+  subgraph cluster_ingest {
+    label="Ingestion (hors ligne)";
+    fontname="Helvetica"; style="rounded,dashed"; color="#8899bb";
+    docs  [label="Documents\n(corpus curé + échantillon HF)"];
+    chunk [label="Découpage\n(fenêtres ~200 mots)"];
+    emb1  [label="Vectorisation\n(nomic-embed-text, 768-d)"];
+    docs -> chunk -> emb1;
+  }
+
+  store [shape=cylinder, fillcolor="#e7f7ee", label="Base pgvector\n(docs : contenu + vecteur + origine)"];
+  emb1 -> store [label="Insertion"];
+
+  subgraph cluster_query {
+    label="Requête (en ligne)";
+    fontname="Helvetica"; style="rounded,dashed"; color="#8899bb";
+    q      [label="Question utilisateur"];
+    emb2   [label="Vectorisation de la question"];
+    search [label="Recherche cosinus top-k\n(embedding <=> q)"];
+    vet    [label="Filtrage des sources\n(origines de confiance)", fillcolor="#fdecea"];
+    prompt [label="Construction du prompt\n(contexte + question)"];
+    llm    [label="Réponse du LLM\n(gemma2:2b via Ollama)"];
+    filt   [label="Filtrage de sortie\n(masquage des secrets)", fillcolor="#fdecea"];
+    ans    [label="Réponse + sources", fillcolor="#fff6db"];
+    q -> emb2 -> search;
+    search -> vet -> prompt -> llm -> filt -> ans;
+  }
+
+  store -> search [label="k plus proches"];
+
+  legend [shape=note, fillcolor="#fdecea", fontsize=9,
+          label="rouge = contrôle de sécurité\n(défense en profondeur)"];
+}
