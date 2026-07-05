@@ -1,0 +1,8 @@
+# Core RAG pipeline — deliberately minimal so every step stays visible.
+psycopg[binary]>=3.1      # PostgreSQL driver (psycopg 3)
+pgvector>=0.3             # binds the pgvector `vector` type to psycopg
+ollama>=0.3               # thin client for the local Ollama HTTP API
+python-dotenv>=1.0        # loads .env
+
+# Only needed for the optional HuggingFace sample (scripts/fetch_hf_sample.py).
+datasets>=2.19

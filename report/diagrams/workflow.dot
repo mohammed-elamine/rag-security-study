@@ -1,0 +1,38 @@
+digraph workflow {
+  rankdir=TB;
+  fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=9, color="#556"];
+
+  subgraph cluster_ingest {
+    label="Ingestion (offline)";
+    fontname="Helvetica"; style="rounded,dashed"; color="#8899bb";
+    docs  [label="Documents\n(curated + HF sample)"];
+    chunk [label="Chunk\n(~200-word windows)"];
+    emb1  [label="Embed\n(nomic-embed-text, 768-d)"];
+    docs -> chunk -> emb1;
+  }
+
+  store [shape=cylinder, fillcolor="#e7f7ee", label="pgvector store\n(docs: content + embedding + origin)"];
+  emb1 -> store [label="INSERT"];
+
+  subgraph cluster_query {
+    label="Query (online)";
+    fontname="Helvetica"; style="rounded,dashed"; color="#8899bb";
+    q      [label="User question"];
+    emb2   [label="Embed question"];
+    search [label="Cosine top-k search\n(embedding <=> q)"];
+    vet    [label="Source vetting\n(trusted origins only)", fillcolor="#fdecea"];
+    prompt [label="Build prompt\n(context + question)"];
+    llm    [label="LLM answer\n(gemma2:2b via Ollama)"];
+    filt   [label="Output filter\n(redact secrets)", fillcolor="#fdecea"];
+    ans    [label="Answer + sources", fillcolor="#fff6db"];
+    q -> emb2 -> search;
+    search -> vet -> prompt -> llm -> filt -> ans;
+  }
+
+  store -> search [label="k nearest"];
+
+  legend [shape=note, fillcolor="#fdecea", fontsize=9,
+          label="red = security control\n(defense-in-depth)"];
+}

@@ -1,0 +1,16 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local env (recreated from .env.example by setup.sh)
+.env
+
+# Generated HF sample corpus (recreate with scripts/fetch_hf_sample.py)
+corpus/hf_sample/
+
+# LaTeX build intermediates
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc

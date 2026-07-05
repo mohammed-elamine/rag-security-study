@@ -1,0 +1,46 @@
+# RAG infrastructure.
+#
+#   db      — PostgreSQL + pgvector, the vector store. Always runs in Docker.
+#   ollama  — the LLM runtime. OPTIONAL: only starts with `--profile containerized`.
+#
+# Two portable deployment modes (see README):
+#   * Native Ollama (default): run Ollama on the host for GPU acceleration
+#     (Metal on Apple Silicon, CUDA on Linux). Only `db` runs here.
+#   * Containerized Ollama: `docker compose --profile containerized up -d` runs the
+#     whole stack in Docker on any OS (Linux / Windows / Intel Mac), CPU by default.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: rag-pgvector
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    profiles: ["containerized"]        # only starts when this profile is requested
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # NVIDIA GPU on Linux: install nvidia-container-toolkit and uncomment:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - {driver: nvidia, count: all, capabilities: [gpu]}
+
+volumes:
+  pgdata:
+  ollama_models:
